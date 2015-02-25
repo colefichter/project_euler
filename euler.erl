@@ -41,7 +41,7 @@ is_prime(X) ->
 % number would be 1 + 2 + 3 + 4 + 5 + 6 + 7 = 28. The first ten terms would be:
 %	1, 3, 6, 10, 15, 21, 28, 36, 45, 55, ...
 % Find the first triangle number with greater than 500 divisors.
-%  NOTE: this solution is quite slow! Be prepared to wait for a couple of minutes.
+%  NOTE: this solution is quite slow! Be prepared to wait for a while.
 problem12() ->
 	problem12(1, 1).
 
@@ -126,6 +126,24 @@ collatz_int(N, L) when N rem 2 == 0 ->
 	collatz_int(erlang:trunc(N/2), [N|L]);
 collatz_int(N, L) when N rem 2 =/= 0 ->
 	collatz_int(erlang:trunc(3*N + 1), [N|L]).
+
+%-----------------------------------------------------------------------------------------------
+% Problem 15 in project euler.
+% This is a combinatorial problem based on the paths through the NxN grid. All paths have length
+%  2N and consist of N 'Rights' and N 'Downs'. Thus, choosing the ways to arrange the paths we  have:
+%
+%				2n(2n-1)(2n-2)..(2n-n+1)	(2n)!
+%		2nCn = ------------------------- = --------
+%				n(n-1)(n-2)...1 			(n!)^2
+%
+% Note that 2nCn means "2n Choose n".
+problem15() ->
+	problem15(20).
+
+problem15(GridSize) ->
+	Numerator = factorial(2*GridSize),
+	Denominator = factorial(GridSize),
+	Numerator div (Denominator * Denominator).
 
 %-----------------------------------------------------------------------------------------------
 % Problem 34 in project euler
@@ -215,3 +233,7 @@ num_divisors_test() ->
 	?assertEqual(length([1,5]), num_divisors(5)),
 	?assertEqual(length([1,2,3,6]), num_divisors(6)),
 	?assertEqual(length([1,2,4,7,14,28]), num_divisors(28)).
+
+problem15_test() ->
+	?assertEqual(2, problem15(1)),
+	?assertEqual(6, problem15(2)).
