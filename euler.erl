@@ -149,8 +149,53 @@ problem15(GridSize) ->
 %-----------------------------------------------------------------------------------------------
 % Problem 18: Erlang is a really bad platform for this problem. It's not worth the trouble.
 %  Good explanation of an efficient bottom-up algorithm: http://www.mathblog.dk/project-euler-18/
-
 problem18() -> 1074.
+
+%-----------------------------------------------------------------------------------------------
+% Problem 21.
+problem21() ->
+	AmicableNumbers = [],
+	problem21(AmicableNumbers, 1).
+
+problem21(AmicableNumbers, 10000) ->
+	{solution, lists:sum(AmicableNumbers), numbers, AmicableNumbers};
+problem21(AmicableNumbers, Current) ->
+	Sum = sum_divisors(Current),	
+	case (Current /= Sum) andalso (Current == sum_divisors(Sum)) of
+		true ->
+			problem21([Current|AmicableNumbers], Current + 1);
+		false ->
+			problem21(AmicableNumbers, Current + 1)
+	end.
+
+sum_divisors(N) ->
+	ProperDivisors = divisors(N) -- [N],
+	lists:sum(ProperDivisors).
+
+%-----------------------------------------------------------------------------------------------
+% Problem 22
+problem22() ->
+	{ok, [Names]} = file:consult("problem22.data.txt"),
+	Sorted = lists:sort(Names),
+	{_, TotalScore} = lists:foldl(fun(Name, {Index, Sum}) -> 
+									{Index + 1, Sum + (Index * name_score(Name))}
+								  end, {1, 0}, Sorted),
+	TotalScore.
+
+name_score(Name) ->
+	name_score(Name, 0).
+
+name_score([], Score) ->
+	Score;
+name_score([H|T], Score) ->
+	name_score(T, Score + H - 64).
+
+%-----------------------------------------------------------------------------------------------
+% Problem 29.  This is very similar to the perms example up top ^^^.
+problem29() ->
+	Items = [erlang:trunc(math:pow(A, B)) || A <- lists:seq(2,100), B <- lists:seq(2,100)],
+	Result = lists:usort(Items), %Deduplicate the list.
+	{num_items, length(Result), items, Result}.
 
 %-----------------------------------------------------------------------------------------------
 % Problem 34 in project euler
@@ -185,7 +230,6 @@ factorial(0) ->	1;
 factorial(1) -> 1;
 factorial(N) ->
 	N * factorial(N-1).
-
 
 %-----------------------------------------------------------------------------------------------
 % TESTS
@@ -251,3 +295,10 @@ problem15_test() ->
 % 	?assertEqual(75, dict:fetch({1, 1}, Dict)),
 % 	?assertEqual(47, dict:fetch({3, 2}, Dict)),
 % 	?assertEqual(80, dict:fetch({9, 7}, Dict)).
+
+sum_divisors_test() ->
+	?assertEqual(284, sum_divisors(220)),
+	?assertEqual(220, sum_divisors(284)).
+
+name_score_test() ->
+	?assertEqual(53, name_score("COLIN")).
