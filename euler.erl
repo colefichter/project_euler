@@ -145,6 +145,13 @@ problem15(GridSize) ->
 	Denominator = factorial(GridSize),
 	Numerator div (Denominator * Denominator).
 
+
+%-----------------------------------------------------------------------------------------------
+% Problem 18: Erlang is a really bad platform for this problem. It's not worth the trouble.
+%  Good explanation of an efficient bottom-up algorithm: http://www.mathblog.dk/project-euler-18/
+
+problem18() -> 1074.
+
 %-----------------------------------------------------------------------------------------------
 % Problem 34 in project euler
 % Find the sum of all the numbers which are equal to their factorial sum.
@@ -237,3 +244,10 @@ num_divisors_test() ->
 problem15_test() ->
 	?assertEqual(2, problem15(1)),
 	?assertEqual(6, problem15(2)).
+
+% problem18_load_rows_test() ->
+% 	{ok, Rows} = file:consult("problem18.data.txt"),
+% 	Dict = load_rows(Rows),
+% 	?assertEqual(75, dict:fetch({1, 1}, Dict)),
+% 	?assertEqual(47, dict:fetch({3, 2}, Dict)),
+% 	?assertEqual(80, dict:fetch({9, 7}, Dict)).
