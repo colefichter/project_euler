@@ -9,6 +9,32 @@ perms([]) ->
 perms(L) ->
 	[ [H|T] || H <- L, T <- perms(L-- [H])].
 
+
+%-----------------------------------------------------------------------------------------------
+% Problem 3
+
+problem3() ->
+	largest_prime_factor(600851475143).
+
+%  See: http://www.mathblog.dk/project-euler-problem-3/
+largest_prime_factor(N) ->
+	largest_prime_factor(N, 2, 0).
+
+largest_prime_factor(N, Current, LargestFactor) when Current*Current =< N ->
+	case N rem Current == 0 of
+		true -> largest_prime_factor(N div Current, Current, Current);
+		false ->
+			Current1 = case Current of %Optimize: skip even numbers after we've checked 2.
+				2 -> 3;
+				_ -> Current + 2
+			end,
+			largest_prime_factor(N, Current1, LargestFactor)
+	end;
+largest_prime_factor(N, Current, _LargestFactor) when N > Current ->
+	{n, N, current, Current, largest_factor, N};
+largest_prime_factor(N, Current, LargestFactor) ->
+	{n, N, current, Current, largest_factor, LargestFactor}.
+
 %-----------------------------------------------------------------------------------------------
 % Problem 10 in project euler.
 problem10() ->
@@ -302,3 +328,7 @@ sum_divisors_test() ->
 
 name_score_test() ->
 	?assertEqual(53, name_score("COLIN")).
+
+largest_prime_factor_test() ->
+	{_, _, _, _, _, LargestFactor} = largest_prime_factor(13195),
+	?assertEqual(29, LargestFactor).
