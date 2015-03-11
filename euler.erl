@@ -81,6 +81,9 @@ problem12(N, Sum) ->
 			problem12(N+1, Sum+N+1)
 	end.
 
+proper_divisors(N) ->
+	divisors(1, N, []).
+
 % A naive (brute-force) method of finding all the divisors of an integer.
 divisors(N) ->
 	divisors(1, N, [N]).
@@ -195,8 +198,7 @@ problem21(AmicableNumbers, Current) ->
 	end.
 
 sum_divisors(N) ->
-	ProperDivisors = divisors(N) -- [N],
-	lists:sum(ProperDivisors).
+	lists:sum(proper_divisors(N)).
 
 %-----------------------------------------------------------------------------------------------
 % Problem 22
@@ -215,6 +217,84 @@ name_score([], Score) ->
 	Score;
 name_score([H|T], Score) ->
 	name_score(T, Score + H - 64).
+
+
+%-----------------------------------------------------------------------------------------------
+% Problem 23
+% We have to precompute the cache or else the solution is VERY slow. Doing it this way takes a few seconds.
+problem23() ->
+	% 20161 is a well-known upper bound for this problem.
+	AbundantInts = [{X, 0} || X <- lists:seq(1, 20161), is_abundant(X)],
+	Dict = dict:from_list(AbundantInts),
+	Ints = [X || X <- lists:seq(1, 20161), is_sum_of_abundants_cache(X, Dict) == false],
+	lists:sum(Ints).
+
+is_abundant(N) -> is_abundant(N, lists:sum(proper_divisors(N))).
+
+is_abundant(N, SumOfDivisors) when SumOfDivisors > N -> true;
+is_abundant(N, SumOfDivisors) when SumOfDivisors =< N -> false.
+
+is_sum_of_abundants(N) when N > 28123 -> true; % All numbers larger than 28123  are the sum of two abundant numbers.
+is_sum_of_abundants(N) when N < 24 -> false; % 24 is the smallest number that can be written as the sum of two abundant numbers.
+is_sum_of_abundants(N) -> is_sum_of_abundants(1, N-1).
+
+is_sum_of_abundants(Lower, Upper) when Lower > Upper -> false;
+is_sum_of_abundants(Lower, Upper) when Lower =< Upper ->
+	case is_abundant(Lower) andalso is_abundant(Upper) of
+		true -> true;
+		false -> is_sum_of_abundants(Lower + 1, Upper - 1)
+	end.
+
+% This version looks for numbers in a cache to improve performance
+is_sum_of_abundants_cache(N, _Dict) when N > 28123 -> true; % All numbers larger than 28123  are the sum of two abundant numbers.
+is_sum_of_abundants_cache(N, _Dict) when N < 24 -> false; % 24 is the smallest number that can be written as the sum of two abundant numbers.
+is_sum_of_abundants_cache(N, Dict) -> is_sum_of_abundants_cache(1, N-1, Dict).
+
+is_sum_of_abundants_cache(Lower, Upper, _Dict) when Lower > Upper -> false;
+is_sum_of_abundants_cache(Lower, Upper, Dict) when Lower =< Upper ->
+	case dict:is_key(Lower, Dict) andalso dict:is_key(Upper, Dict) of
+		true -> true;
+		false -> is_sum_of_abundants_cache(Lower + 1, Upper - 1, Dict)
+	end.
+
+%-----------------------------------------------------------------------------------------------
+% Problem 24.
+% Find the millionth permutation of the digits 0,1,2,3,4,5,6,7,8,9
+% (I thought this would take forever, but it runs in about 2-3 seconds!)
+problem24() ->
+	L = perms([0,1,2,3,4,5,6,7,8,9]),
+	lists:nth(1000000, L).
+
+
+%-----------------------------------------------------------------------------------------------
+% Problem 25.
+
+problem25() ->
+	% Quick testing suggests that we're looking for a number x, such that 4000 < x < 5000 because:
+	%  fib(4000) -> length 836
+	%  fib(5000) -> length 1045
+	problem25(4000).
+
+problem25(N) ->
+	case length(integer_to_list(fib(N))) >= 1000 of
+		true -> N;
+		false -> problem25(N+1)
+	end.
+
+% SLOW for large N (greater than about 25).
+% fib(1) -> 1;
+% fib(2) -> 1;
+% fib(N) -> fib(N-1) + fib(N-2).
+
+% This is a fast implementation of fib. Works instantly for values of N > 1000!
+% Even fib(100000) takes only about 1 second!
+fib(1) -> 1;
+fib(2) -> 1;
+fib(N) -> fib(3, N, [1,1]).
+fib(X, N, [H|_]) when X > N ->
+	H;
+fib(X, N, L = [H1|[H2|_T]]) ->
+	fib(X + 1, N, [H1+H2 | L]).
 
 %-----------------------------------------------------------------------------------------------
 % Problem 29.  This is very similar to the perms example up top ^^^.
@@ -302,6 +382,9 @@ divisors_test() ->
 	?assertEqual([1,2,3,6], divisors(6)),
 	?assertEqual([1,2,4,7,14,28], divisors(28)).
 
+proper_divisors() ->
+	?assertEqual([1,2,4,7,14], proper_divisors(28)).
+
 num_divisors_test() ->
 	?assertEqual(length([1]), num_divisors(1)),
 	?assertEqual(length([1,2]), num_divisors(2)),
@@ -332,3 +415,39 @@ name_score_test() ->
 largest_prime_factor_test() ->
 	{_, _, _, _, _, LargestFactor} = largest_prime_factor(13195),
 	?assertEqual(29, LargestFactor).
+
+
+is_abundant_test() ->
+	?assertEqual(false, is_abundant(1)),
+	?assertEqual(false, is_abundant(2)),
+	?assertEqual(false, is_abundant(3)),
+	?assertEqual(false, is_abundant(4)),
+	?assertEqual(false, is_abundant(5)),
+	?assertEqual(false, is_abundant(6)),
+	?assertEqual(false, is_abundant(7)),
+	?assertEqual(false, is_abundant(8)),
+	?assertEqual(false, is_abundant(9)),
+	?assertEqual(false, is_abundant(10)),
+	?assertEqual(false, is_abundant(11)),
+	?assertEqual(true, is_abundant(12)),
+	?assertEqual(false, is_abundant(13)).
+
+
+is_sum_of_abundants_test() ->
+	?assertEqual(false, is_sum_of_abundants(23)),
+	?assertEqual(true, is_sum_of_abundants(24)),
+	?assertEqual(false, is_sum_of_abundants(25)).
+
+fib_test() ->
+	?assertEqual(1, fib(1)),
+	?assertEqual(1, fib(2)),
+	?assertEqual(2, fib(3)),
+	?assertEqual(3, fib(4)),
+	?assertEqual(5, fib(5)),
+	?assertEqual(8, fib(6)),
+	?assertEqual(13, fib(7)),
+	?assertEqual(21, fib(8)),
+	?assertEqual(34, fib(9)),
+	?assertEqual(55, fib(10)),
+	?assertEqual(89, fib(11)),
+	?assertEqual(144, fib(12)).
