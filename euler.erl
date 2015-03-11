@@ -42,16 +42,11 @@ problem10() ->
 	L = [X || X <- lists:seq(1, 2000000), is_prime(X)],
 	lists:sum(L).
 
-is_prime(1) ->
-	false;
-is_prime(2) ->
-	true;
-is_prime(3) ->
-	true;
-is_prime(X) when X rem 2 == 0 ->
-	false;
-%is_prime(X) when is_integer(math:sqrt(X)) ->
-%	false;
+is_prime(1) -> false;
+is_prime(2) -> true;
+is_prime(3) -> true;
+is_prime(X) when X < 0 -> is_prime(abs(X));
+is_prime(X) when X rem 2 == 0 -> false;
 is_prime(X) ->
 	Divisors = lists:seq(2, erlang:trunc(math:sqrt(X))),
 	case [A || A <- Divisors, X rem A == 0] of
@@ -297,6 +292,35 @@ fib(X, N, L = [H1|[H2|_T]]) ->
 	fib(X + 1, N, [H1+H2 | L]).
 
 %-----------------------------------------------------------------------------------------------
+% Problem 27
+problem27() -> 
+	{MaxA, MaxB, MaxPrimes} = problem27(-1000, -1000, 0, 0, 0),
+	{a, MaxA, b, MaxB, numprimes, MaxPrimes, prod, MaxA * MaxB}.
+
+problem27(A, B, MaxA, MaxB, MaxPrimes) when A == 1001, B == 1001 ->
+	{MaxA, MaxB, MaxPrimes};	
+problem27(A, B, MaxA, MaxB, MaxPrimes) when B == 1001 ->
+	problem27(A+1, -1000, MaxA, MaxB, MaxPrimes);
+problem27(A, B, MaxA, MaxB, MaxPrimes) ->
+	Poly = generate_poly(A, B),
+	NumPrimes = num_consecutive_primes(Poly),
+	case NumPrimes > MaxPrimes of
+		true -> problem27(A, B+1, A, B, NumPrimes);
+		false -> problem27(A, B+1, MaxA, MaxB, MaxPrimes)
+	end.
+
+generate_poly(A,B) -> 
+	fun(N) -> N*N + A*N + B end.
+
+num_consecutive_primes(Poly) -> num_consecutive_primes(Poly, 0, 0).
+num_consecutive_primes(Poly, N, NumConsecutive) ->
+	X = Poly(N),
+	case is_prime(X) of
+		true -> num_consecutive_primes(Poly, N+1, NumConsecutive+1);
+		false -> NumConsecutive
+	end.
+
+%-----------------------------------------------------------------------------------------------
 % Problem 29.  This is very similar to the perms example up top ^^^.
 problem29() ->
 	Items = [erlang:trunc(math:pow(A, B)) || A <- lists:seq(2,100), B <- lists:seq(2,100)],
@@ -358,6 +382,7 @@ factorial_sum_equal_test() ->
 	?assertEqual(false, factorial_sum_equal(120)).
 
 is_prime_test() ->
+	?assertEqual(true, is_prime(-3)),
 	?assertEqual(false, is_prime(1)),
 	?assertEqual(true, is_prime(2)),
 	?assertEqual(true, is_prime(3)),
@@ -451,3 +476,16 @@ fib_test() ->
 	?assertEqual(55, fib(10)),
 	?assertEqual(89, fib(11)),
 	?assertEqual(144, fib(12)).
+
+generate_poly_test() ->
+	% Produce the equation n^2 + 3n + 7
+	Poly = generate_poly(3, 7),
+	?assertEqual(47, Poly(5)).
+
+num_consecutive_primes_test() ->
+	Poly = generate_poly(1, 41),
+	NumPrimes = num_consecutive_primes(Poly),
+	?assertEqual(40, NumPrimes),
+	Poly2 = generate_poly(-79, 1601),
+	NumPrimes2 = num_consecutive_primes(Poly2),
+	?assertEqual(80, NumPrimes2).
