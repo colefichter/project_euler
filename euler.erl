@@ -328,6 +328,23 @@ problem29() ->
 	{num_items, length(Result), items, Result}.
 
 %-----------------------------------------------------------------------------------------------
+% Problem 30
+problem30() ->
+	LowerBound = 2,
+	UpperBound = 1000000, %Come up with a good upper bound...
+	Nums = [X || X <- lists:seq(LowerBound, UpperBound), X == sum_of_digits_powers(X, 5)],
+	Nums2 = Nums -- [1], %Question states that 1 doesn't count as it's not a sum.
+	{sum, lists:sum(Nums2), nums, Nums2}.
+
+sum_of_digits_powers(N, Power) ->
+	sum_of_digits_powers(integer_to_list(N), Power, 0).
+
+sum_of_digits_powers([], _Power, Sum) -> trunc(Sum);
+sum_of_digits_powers([H|T], Power, Sum) ->
+	{Int, []} = string:to_integer([H]),
+	sum_of_digits_powers(T, Power, Sum + math:pow(Int, Power)).
+
+%-----------------------------------------------------------------------------------------------
 % Problem 34 in project euler
 % Find the sum of all the numbers which are equal to their factorial sum.
 % The really tricky part in this one is determining an upper bound (seems like 50,000 is reasonable).
@@ -489,3 +506,9 @@ num_consecutive_primes_test() ->
 	Poly2 = generate_poly(-79, 1601),
 	NumPrimes2 = num_consecutive_primes(Poly2),
 	?assertEqual(80, NumPrimes2).
+
+
+sum_of_digits_powers_test() ->
+	?assertEqual(1634, sum_of_digits_powers(1634, 4)),
+	?assertEqual(8208, sum_of_digits_powers(8208, 4)),
+	?assertEqual(9474, sum_of_digits_powers(9474, 4)).
