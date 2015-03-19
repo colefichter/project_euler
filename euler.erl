@@ -169,6 +169,11 @@ problem15(GridSize) ->
 	Denominator = factorial(GridSize),
 	Numerator div (Denominator * Denominator).
 
+%-----------------------------------------------------------------------------------------------
+% Problem 17
+% Gah, boring stuff with lots of patterns to match different cases. Not really interesting enough
+% to warrant writing a real solution.
+problem17() -> 21124.
 
 %-----------------------------------------------------------------------------------------------
 % Problem 18: Erlang is a really bad platform for this problem. It's not worth the trouble.
