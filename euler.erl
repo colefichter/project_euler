@@ -350,6 +350,12 @@ sum_of_digits_powers([H|T], Power, Sum) ->
 	sum_of_digits_powers(T, Power, Sum + math:pow(Int, Power)).
 
 %-----------------------------------------------------------------------------------------------
+% Problem 31
+%  Erlang is pooly suited to this problem (we need arrays!).  See explanation here:
+%  http://www.mathblog.dk/project-euler-31-combinations-english-currency-denominations/
+problem31() -> 73682.
+
+%-----------------------------------------------------------------------------------------------
 % Problem 34 in project euler
 % Find the sum of all the numbers which are equal to their factorial sum.
 % The really tricky part in this one is determining an upper bound (seems like 50,000 is reasonable).
@@ -382,6 +388,43 @@ factorial(0) ->	1;
 factorial(1) -> 1;
 factorial(N) ->
 	N * factorial(N-1).
+
+%-----------------------------------------------------------------------------------------------
+% Problem 37
+problem37() ->
+	problem37(10, []). %Single digit primes (eg: 7) don't count!
+
+problem37(N, Primes) when length(Primes) < 11 ->
+	case is_truncatable_prime(N) of
+		false -> problem37(N+1, Primes); 
+		true -> problem37(N+1, [N|Primes])
+	end;
+problem37(_N, Primes) when length(Primes) >= 11 ->
+	{primes, Primes, sum, lists:sum(Primes)}.
+
+is_truncatable_prime(N) when is_integer(N) ->
+	Digits = integer_to_list(N),
+	(is_truncatable_prime(Digits) andalso is_truncatable_prime_rtl(Digits));
+
+% Left to right version...
+is_truncatable_prime([]) -> true;
+is_truncatable_prime(Digits = [_|T]) ->
+	{N, []} = string:to_integer(Digits),
+	case is_prime(N) of
+		false -> false;
+		true -> is_truncatable_prime(T)
+	end.
+
+% Rigth to left version of above.
+is_truncatable_prime_rtl([]) -> true;
+is_truncatable_prime_rtl(Digits) ->
+	{N, []} = string:to_integer(Digits),	
+	case is_prime(N) of
+		false -> false;
+		true -> 
+			[_H|T] = lists:reverse(Digits),
+			is_truncatable_prime_rtl(lists:reverse(T))
+	end.
 
 %-----------------------------------------------------------------------------------------------
 % TESTS
@@ -517,3 +560,8 @@ sum_of_digits_powers_test() ->
 	?assertEqual(1634, sum_of_digits_powers(1634, 4)),
 	?assertEqual(8208, sum_of_digits_powers(8208, 4)),
 	?assertEqual(9474, sum_of_digits_powers(9474, 4)).
+
+is_truncatable_prime_test() ->	
+	?assertEqual(true, is_truncatable_prime("3797")),
+	?assertEqual(true, is_truncatable_prime_rtl("3797")),
+	?assertEqual(true, is_truncatable_prime(3797)).
