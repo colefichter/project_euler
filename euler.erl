@@ -9,6 +9,13 @@ perms([]) ->
 perms(L) ->
 	[ [H|T] || H <- L, T <- perms(L-- [H])].
 
+gcd(0, 0) -> 0;
+gcd(A, 0) when A =/= 0 -> abs(A);
+gcd(0, B) when B =/= 0 -> abs(B);
+gcd(A, B) -> gcd(B, A rem B).
+
+lcm(0, 0) -> 0;
+lcm(A, B) -> abs(A * B) div gcd(A, B).
 
 %-----------------------------------------------------------------------------------------------
 % Problem 3
@@ -429,6 +436,20 @@ is_truncatable_prime_rtl(Digits) ->
 %-----------------------------------------------------------------------------------------------
 % TESTS
 -include_lib("eunit/include/eunit.hrl").
+
+gcd_test() ->
+	?assertEqual(20, gcd(0, 20)),
+	?assertEqual(18, gcd(18, 0)),
+	?assertEqual(6, gcd(12, 18)),
+	%Check some laws:
+	?assertEqual(12, gcd(12, 12)),
+	?assertEqual(gcd(18, 12), gcd(12, 18)).
+
+lcm_test() ->
+	?assertEqual(0, lcm(0, 0)),	
+	?assertEqual(0, lcm(6, 0)),
+	?assertEqual(0, lcm(0, 6)),
+	?assertEqual(42, lcm(21, 6)).
 
 factorial_test() ->
 	?assertEqual(1, factorial(0)),
