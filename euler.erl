@@ -362,6 +362,42 @@ sum_of_digits_powers([H|T], Power, Sum) ->
 %  http://www.mathblog.dk/project-euler-31-combinations-english-currency-denominations/
 problem31() -> 73682.
 
+
+%-----------------------------------------------------------------------------------------------
+% Problem 33
+
+problem33() ->
+	Numbers = [X || X <- lists:seq(10, 99), X rem 10 =/= 0], %Generate numbers, excluding trivials like 10,20,30, etc.
+	Fractions = [{X, Y} || X <- Numbers, Y <- Numbers, X / Y < 1.0], %Don't include anything over 1 or trivials like 23/23
+	FilteredFractions = lists:filter(fun({X,Y}) -> attempt_to_cancel_digits(X,Y) =/= error end, Fractions),
+	FilteredCancelled = lists:map(fun attempt_to_cancel_digits/1, FilteredFractions),
+	Equivalent = find_equivalent_fractions(FilteredFractions, FilteredCancelled, []),
+	Numerator = lists:foldl(fun({X, _}, Acc) -> X*Acc end,  1, Equivalent),
+	Denominator = lists:foldl(fun({_, Y}, Acc) -> Y*Acc end,  1, Equivalent),
+	% The solution is the denominator (bottom) of the result fraction in lowest terms... hence the reciprocal in the middle.
+	{{final, Numerator, Denominator}, {result, Denominator/Numerator}, {list, Equivalent}}.
+
+attempt_to_cancel_digits({Numerator, Denominator}) when is_integer(Numerator), is_integer(Denominator) ->
+	attempt_to_cancel_digits(integer_to_list(Numerator), integer_to_list(Denominator)).
+
+attempt_to_cancel_digits(Numerator, Denominator) when is_integer(Numerator), is_integer(Denominator) ->
+	attempt_to_cancel_digits(integer_to_list(Numerator), integer_to_list(Denominator));
+attempt_to_cancel_digits([N1,N2], [D1,D2]) ->
+	attempt_to_cancel_digits(list_to_integer([N1]), list_to_integer([N2]), list_to_integer([D1]), list_to_integer([D2])).
+
+attempt_to_cancel_digits(N1, N2, N1, D2) ->	{N2, D2};
+attempt_to_cancel_digits(N1, N2, D1, N1) ->	{N2, D1};
+attempt_to_cancel_digits(N1, N2, N2, D2) ->	{N1, D2};
+attempt_to_cancel_digits(N1, N2, D1, N2) ->	{N1, D1};
+attempt_to_cancel_digits(_, _, _, _) -> error.
+
+find_equivalent_fractions([], [], Acc) ->	Acc;
+find_equivalent_fractions([{N1, D1}|Tail1], [{N2,D2}|Tail2], Acc) ->
+	case (N1/D1) == (N2/D2) of
+		true -> find_equivalent_fractions(Tail1, Tail2, [{N1,D1} | Acc]);
+		false -> find_equivalent_fractions(Tail1, Tail2, Acc)
+	end.
+
 %-----------------------------------------------------------------------------------------------
 % Problem 34 in project euler
 % Find the sum of all the numbers which are equal to their factorial sum.
@@ -422,7 +458,7 @@ is_truncatable_prime(Digits = [_|T]) ->
 		true -> is_truncatable_prime(T)
 	end.
 
-% Rigth to left version of above.
+% Right to left version of above.
 is_truncatable_prime_rtl([]) -> true;
 is_truncatable_prime_rtl(Digits) ->
 	{N, []} = string:to_integer(Digits),	
@@ -586,3 +622,9 @@ is_truncatable_prime_test() ->
 	?assertEqual(true, is_truncatable_prime("3797")),
 	?assertEqual(true, is_truncatable_prime_rtl("3797")),
 	?assertEqual(true, is_truncatable_prime(3797)).
+
+attempt_to_cancel_digits_test() ->
+	?assertEqual({4, 8}, attempt_to_cancel_digits(49, 98)),
+	?assertEqual({4, 8}, attempt_to_cancel_digits(94, 89)),
+	?assertEqual({3, 5}, attempt_to_cancel_digits(30, 50)),
+	?assertEqual(error, attempt_to_cancel_digits(25, 34)).
